@@ -39,7 +39,8 @@ public final class MonitorReceiver extends BroadcastReceiver {
     private void scheduleFromSleep(Context c,long off,long now){
         Calendar deadline=Calendar.getInstance();deadline.setTimeInMillis(now);deadline.set(Calendar.HOUR_OF_DAY,Scheduler.wakeHour(c));deadline.set(Calendar.MINUTE,Scheduler.wakeMinute(c));deadline.set(Calendar.SECOND,0);deadline.set(Calendar.MILLISECOND,0);
         if(deadline.getTimeInMillis()<=now)deadline.add(Calendar.DAY_OF_YEAR,1);
-        long wake=Math.min(off+Scheduler.sleepMinutes(c)*60_000L,deadline.getTimeInMillis());
+        Calendar earliest=(Calendar)deadline.clone();earliest.set(Calendar.HOUR_OF_DAY,Scheduler.earliestHour(c));earliest.set(Calendar.MINUTE,Scheduler.earliestMinute(c));
+        long wake=Math.max(earliest.getTimeInMillis(),Math.min(off+Scheduler.sleepMinutes(c)*60_000L,deadline.getTimeInMillis()));
         Calendar w=Calendar.getInstance();w.setTimeInMillis(wake);int day=w.get(Calendar.DAY_OF_WEEK);
         if(day==Calendar.SATURDAY||day==Calendar.SUNDAY){Scheduler.manager(c).cancel(Scheduler.alarmIntent(c));return;}
         if(wake>now)Scheduler.scheduleWake(c,wake);
