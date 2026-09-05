@@ -1,0 +1,18 @@
+name: Build Screen Insight APK
+on:
+  push:
+    branches: [main]
+    paths: ['screen-insight/**','settings.gradle.kts','build.gradle.kts','.github/workflows/screen-insight.yml']
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - uses: gradle/actions/setup-gradle@v4
+        with: {gradle-version: '8.7'}
+      - run: gradle :screen-insight:assembleDebug
+      - uses: actions/upload-artifact@v4
+        with: {name: screen-insight-apk, path: screen-insight/build/outputs/apk/debug/screen-insight-debug.apk}
