@@ -10,7 +10,9 @@ public final class AlarmService extends Service {
         nm.createNotificationChannel(new NotificationChannel(id,"Smart alarm",NotificationManager.IMPORTANCE_HIGH));
         Intent open=new Intent(this,AlarmActivity.class);open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pi=PendingIntent.getActivity(this,20,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
-        Notification n=new Notification.Builder(this,id).setSmallIcon(android.R.drawable.ic_lock_idle_alarm).setContentTitle("起床时间到了").setContentText("点击停止闹铃").setCategory(Notification.CATEGORY_ALARM).setOngoing(true).setFullScreenIntent(pi,true).setContentIntent(pi).build();
+        PendingIntent stop=PendingIntent.getBroadcast(this,22,new Intent(this,AlarmActionReceiver.class).setAction(AlarmActionReceiver.ACTION_STOP),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent snooze=PendingIntent.getBroadcast(this,23,new Intent(this,AlarmActionReceiver.class).setAction(AlarmActionReceiver.ACTION_SNOOZE),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+        Notification n=new Notification.Builder(this,id).setSmallIcon(android.R.drawable.ic_lock_idle_alarm).setContentTitle("起床时间到了").setContentText("无需解锁即可停止或延迟").setCategory(Notification.CATEGORY_ALARM).setOngoing(true).setFullScreenIntent(pi,true).setContentIntent(pi).addAction(new Notification.Action.Builder(null,"延迟5分钟",snooze).build()).addAction(new Notification.Action.Builder(null,"停止",stop).build()).build();
         startForeground(100,n);ringtone=RingtoneManager.getRingtone(this,RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM));
         if(ringtone!=null){ringtone.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).build());ringtone.setLooping(true);ringtone.play();}
         vibrator=(Vibrator)getSystemService(VIBRATOR_SERVICE);vibrator.vibrate(VibrationEffect.createWaveform(new long[]{0,800,400},0));startActivity(open);
