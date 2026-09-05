@@ -19,7 +19,7 @@ public final class MainActivity extends Activity {
         Button exact=new Button(this);exact.setText("② 开启闹钟和提醒权限");box.addView(exact,new LinearLayout.LayoutParams(-1,130));
         Button test=new Button(this);test.setText("测试闹铃（1分钟后）");box.addView(test,new LinearLayout.LayoutParams(-1,130));
         box.addView(t("检测时段：21:00–03:00。息屏连续15分钟后视为入睡；再次使用手机会自动重新计算。首次设置权限后无需每天打开 App。",15,Color.GRAY));setContentView(box);
-        toggle.setOnCheckedChangeListener((v,on)->{getSharedPreferences(Scheduler.PREFS,0).edit().putBoolean(Scheduler.ENABLED,on).apply();if(on)Scheduler.scheduleMonitor(this,System.currentTimeMillis()+3000);else Scheduler.cancelAll(this);status.setText(on?"已启动，等待检测":"自动闹铃已关闭");});
+        toggle.setOnCheckedChangeListener((v,on)->{getSharedPreferences(Scheduler.PREFS,0).edit().putBoolean(Scheduler.ENABLED,on).apply();if(on)Scheduler.startMonitorService(this);else Scheduler.cancelAll(this);status.setText(on?"已启动，后台常驻运行":"自动闹铃已关闭");});
         earliestButton.setOnClickListener(v->new TimePickerDialog(this,(picker,hour,minute)->{
             int latest=Scheduler.wakeHour(this)*60+Scheduler.wakeMinute(this);
             if(hour*60+minute>latest){status.setText("最早时间不能晚于最晚起床时间");return;}
@@ -37,7 +37,7 @@ public final class MainActivity extends Activity {
         exact.setOnClickListener(v->{if(Build.VERSION.SDK_INT>=31)startActivity(new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:"+getPackageName())));});
         test.setOnClickListener(v->{Scheduler.scheduleWake(this,System.currentTimeMillis()+60_000);status.setText("测试闹铃已设为1分钟后");});
         if(Build.VERSION.SDK_INT>=33)requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},50);
-        if(Scheduler.enabled(this))Scheduler.scheduleMonitor(this,System.currentTimeMillis()+3000);
+        if(Scheduler.enabled(this))Scheduler.startMonitorService(this);
     }
     private String earliestText(){return String.format(java.util.Locale.getDefault(),"最早起床时间：%02d:%02d",Scheduler.earliestHour(this),Scheduler.earliestMinute(this));}
     private String wakeText(){return String.format(java.util.Locale.getDefault(),"最晚起床时间：%02d:%02d",Scheduler.wakeHour(this),Scheduler.wakeMinute(this));}
