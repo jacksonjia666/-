@@ -4,7 +4,7 @@ import android.app.Activity;import android.app.TimePickerDialog;import android.c
 
 public final class MainActivity extends Activity {
     private TextView status;
-    private Button wakeButton, sleepButton;
+    private Button earliestButton, wakeButton, sleepButton;
     @Override public void onCreate(Bundle b){super.onCreate(b);render();}
     @Override protected void onResume(){super.onResume();if(status!=null)status.setText("下次闹铃："+Scheduler.formattedNext(this));}
     private void render(){
@@ -12,6 +12,7 @@ public final class MainActivity extends Activity {
         TextView title=t("Smart Sleep Alarm",30,Color.WHITE);box.addView(title);box.addView(t("根据最后息屏时间自动计算\n仅周一至周五早晨响铃",17,Color.LTGRAY));
         Switch toggle=new Switch(this);toggle.setText("每天自动运行");toggle.setTextColor(Color.WHITE);toggle.setTextSize(18);toggle.setChecked(Scheduler.enabled(this));box.addView(toggle,new LinearLayout.LayoutParams(-1,130));
         status=t("下次闹铃："+Scheduler.formattedNext(this),18,Color.rgb(157,151,255));box.addView(status);
+        earliestButton=new Button(this);earliestButton.setText(earliestText());box.addView(earliestButton,new LinearLayout.LayoutParams(-1,130));
         wakeButton=new Button(this);wakeButton.setText(wakeText());box.addView(wakeButton,new LinearLayout.LayoutParams(-1,130));
         sleepButton=new Button(this);sleepButton.setText(sleepText());box.addView(sleepButton,new LinearLayout.LayoutParams(-1,130));
         Button usage=new Button(this);usage.setText("① 开启使用情况访问权限");box.addView(usage,new LinearLayout.LayoutParams(-1,130));
@@ -19,7 +20,15 @@ public final class MainActivity extends Activity {
         Button test=new Button(this);test.setText("测试闹铃（1分钟后）");box.addView(test,new LinearLayout.LayoutParams(-1,130));
         box.addView(t("检测时段：21:00–03:00。息屏连续15分钟后视为入睡；再次使用手机会自动重新计算。首次设置权限后无需每天打开 App。",15,Color.GRAY));setContentView(box);
         toggle.setOnCheckedChangeListener((v,on)->{getSharedPreferences(Scheduler.PREFS,0).edit().putBoolean(Scheduler.ENABLED,on).apply();if(on)Scheduler.scheduleMonitor(this,System.currentTimeMillis()+3000);else Scheduler.cancelAll(this);status.setText(on?"已启动，等待检测":"自动闹铃已关闭");});
+        earliestButton.setOnClickListener(v->new TimePickerDialog(this,(picker,hour,minute)->{
+            int latest=Scheduler.wakeHour(this)*60+Scheduler.wakeMinute(this);
+            if(hour*60+minute>latest){status.setText("最早时间不能晚于最晚起床时间");return;}
+            getSharedPreferences(Scheduler.PREFS,0).edit().putInt(Scheduler.EARLIEST_HOUR,hour).putInt(Scheduler.EARLIEST_MINUTE,minute).apply();
+            earliestButton.setText(earliestText());recalculate();
+        },Scheduler.earliestHour(this),Scheduler.earliestMinute(this),true).show());
         wakeButton.setOnClickListener(v->new TimePickerDialog(this,(picker,hour,minute)->{
+            int earliest=Scheduler.earliestHour(this)*60+Scheduler.earliestMinute(this);
+            if(hour*60+minute<earliest){status.setText("最晚时间不能早于最早起床时间");return;}
             getSharedPreferences(Scheduler.PREFS,0).edit().putInt(Scheduler.WAKE_HOUR,hour).putInt(Scheduler.WAKE_MINUTE,minute).apply();
             wakeButton.setText(wakeText());recalculate();
         },Scheduler.wakeHour(this),Scheduler.wakeMinute(this),true).show());
@@ -30,6 +39,7 @@ public final class MainActivity extends Activity {
         if(Build.VERSION.SDK_INT>=33)requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},50);
         if(Scheduler.enabled(this))Scheduler.scheduleMonitor(this,System.currentTimeMillis()+3000);
     }
+    private String earliestText(){return String.format(java.util.Locale.getDefault(),"最早起床时间：%02d:%02d",Scheduler.earliestHour(this),Scheduler.earliestMinute(this));}
     private String wakeText(){return String.format(java.util.Locale.getDefault(),"最晚起床时间：%02d:%02d",Scheduler.wakeHour(this),Scheduler.wakeMinute(this));}
     private String sleepText(){int m=Scheduler.sleepMinutes(this);return "最长睡眠时间："+(m/60)+"小时"+(m%60)+"分钟";}
     private void showSleepPicker(){
