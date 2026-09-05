@@ -1,0 +1,10 @@
+package com.jackson.screeninsight;
+
+import android.app.Activity;import android.graphics.Color;import android.os.Bundle;import android.widget.LinearLayout;import android.widget.ScrollView;import android.widget.TextView;import java.text.SimpleDateFormat;import java.util.Calendar;import java.util.Date;import java.util.Locale;
+
+public final class ReportActivity extends Activity {
+    @Override public void onCreate(Bundle b){super.onCreate(b);ScrollView sc=new ScrollView(this);LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(38,65,38,40);box.setBackgroundColor(Color.rgb(16,24,32));sc.addView(box);setContentView(sc);box.addView(t(getIntent().getBooleanExtra("daily",false)?"每日详细报告":"每周详细报告",28,Color.WHITE));box.addView(t("正在分析本机数据…",16,Color.LTGRAY));new Thread(()->{UsageAnalyzer.Report r=UsageAnalyzer.analyze(this);runOnUiThread(()->render(box,r));}).start();}
+    private void render(LinearLayout box,UsageAnalyzer.Report r){box.removeViewAt(1);box.addView(t("本周总计："+UsageAnalyzer.duration(r.total)+"\n深夜使用："+UsageAnalyzer.duration(r.late),19,Color.rgb(72,202,228)));box.addView(t(r.advice,18,Color.WHITE));String[] d={"周一","周二","周三","周四","周五","周六","周日"};box.addView(t("每日明细",20,Color.WHITE));for(int i=0;i<7;i++)box.addView(t(d[i]+"  "+UsageAnalyzer.duration(r.days[i])+"  "+clock(r.dayFirst[i])+"–"+clock(r.dayLast[i])+"  深夜 "+UsageAnalyzer.duration(r.dayLate[i]),15,Color.LTGRAY));String[] cn={"股票投资","工作学习","娱乐","微信社交","事务处理"};box.addView(t("分类统计",20,Color.WHITE));for(int i=0;i<5;i++)box.addView(t(cn[i]+"："+UsageAnalyzer.duration(r.categories[i]),16,Color.LTGRAY));box.addView(t("使用最多的 App",20,Color.WHITE));for(int i=0;i<Math.min(10,r.apps.size());i++){UsageAnalyzer.AppRow a=r.apps.get(i);box.addView(t((i+1)+". "+a.name+"  "+UsageAnalyzer.duration(a.ms)+"  · "+UsageAnalyzer.categoryName(a.category),15,Color.LTGRAY));}}
+    private String clock(long x){return x==0?"--:--":new SimpleDateFormat("HH:mm",Locale.getDefault()).format(new Date(x));}
+    private TextView t(String s,int z,int c){TextView v=new TextView(this);v.setText(s);v.setTextSize(z);v.setTextColor(c);v.setPadding(0,15,0,15);return v;}
+}
