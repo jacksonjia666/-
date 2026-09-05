@@ -17,6 +17,7 @@ public final class MainActivity extends Activity {
         sleepButton=new Button(this);sleepButton.setText(sleepText());box.addView(sleepButton,new LinearLayout.LayoutParams(-1,130));
         Button usage=new Button(this);usage.setText("① 开启使用情况访问权限");box.addView(usage,new LinearLayout.LayoutParams(-1,130));
         Button exact=new Button(this);exact.setText("② 开启闹钟和提醒权限");box.addView(exact,new LinearLayout.LayoutParams(-1,130));
+        Button fullScreen=new Button(this);fullScreen.setText("③ 允许锁屏全屏响铃");box.addView(fullScreen,new LinearLayout.LayoutParams(-1,130));
         Button test=new Button(this);test.setText("测试闹铃（1分钟后）");box.addView(test,new LinearLayout.LayoutParams(-1,130));
         box.addView(t("检测时段：21:00–03:00。息屏连续15分钟后视为入睡；再次使用手机会自动重新计算。首次设置权限后无需每天打开 App。",15,Color.GRAY));setContentView(box);
         toggle.setOnCheckedChangeListener((v,on)->{getSharedPreferences(Scheduler.PREFS,0).edit().putBoolean(Scheduler.ENABLED,on).apply();if(on)Scheduler.startMonitorService(this);else Scheduler.cancelAll(this);status.setText(on?"已启动，后台常驻运行":"自动闹铃已关闭");});
@@ -35,6 +36,7 @@ public final class MainActivity extends Activity {
         sleepButton.setOnClickListener(v->showSleepPicker());
         usage.setOnClickListener(v->startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)));
         exact.setOnClickListener(v->{if(Build.VERSION.SDK_INT>=31)startActivity(new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:"+getPackageName())));});
+        fullScreen.setOnClickListener(v->{if(Build.VERSION.SDK_INT>=34)startActivity(new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,Uri.parse("package:"+getPackageName())));else status.setText("当前安卓版本无需单独设置全屏响铃");});
         test.setOnClickListener(v->{Scheduler.scheduleWake(this,System.currentTimeMillis()+60_000);status.setText("测试闹铃已设为1分钟后");});
         if(Build.VERSION.SDK_INT>=33)requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"},50);
         if(Scheduler.enabled(this))Scheduler.startMonitorService(this);
