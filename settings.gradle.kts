@@ -6,3 +6,4 @@ dependencyResolutionManagement {
 rootProject.name = "QueenslandSnake"
 include(":app")
 include(":smart-alarm")
+include(":screen-insight")
