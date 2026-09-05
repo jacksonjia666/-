@@ -11,12 +11,15 @@ import java.util.Date;
 final class Scheduler {
     static final String PREFS = "alarm_settings", ENABLED = "enabled", NEXT = "next_alarm";
     static final String WAKE_HOUR = "wake_hour", WAKE_MINUTE = "wake_minute", SLEEP_MINUTES = "sleep_minutes";
+    static final String EARLIEST_HOUR = "earliest_hour", EARLIEST_MINUTE = "earliest_minute";
     static final int MONITOR_ID = 10, ALARM_ID = 11;
     private Scheduler() {}
 
     static boolean enabled(Context c) { return c.getSharedPreferences(PREFS,0).getBoolean(ENABLED,true); }
     static int wakeHour(Context c) { return c.getSharedPreferences(PREFS,0).getInt(WAKE_HOUR,8); }
     static int wakeMinute(Context c) { return c.getSharedPreferences(PREFS,0).getInt(WAKE_MINUTE,15); }
+    static int earliestHour(Context c) { return c.getSharedPreferences(PREFS,0).getInt(EARLIEST_HOUR,7); }
+    static int earliestMinute(Context c) { return c.getSharedPreferences(PREFS,0).getInt(EARLIEST_MINUTE,30); }
     static int sleepMinutes(Context c) { return c.getSharedPreferences(PREFS,0).getInt(SLEEP_MINUTES,510); }
     static AlarmManager manager(Context c) { return (AlarmManager)c.getSystemService(Context.ALARM_SERVICE); }
     static PendingIntent monitorIntent(Context c) {
