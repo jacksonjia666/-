@@ -16,6 +16,13 @@ final class Scheduler {
     private Scheduler() {}
 
     static boolean enabled(Context c) { return c.getSharedPreferences(PREFS,0).getBoolean(ENABLED,true); }
+    static void startMonitorService(Context c) {
+        if(enabled(c)) {
+            Intent i=new Intent(c,MonitorService.class);
+            try { c.startForegroundService(i); } catch(Exception ignored) { scheduleMonitor(c,System.currentTimeMillis()+3000); }
+        }
+    }
+    static void stopMonitorService(Context c) { c.stopService(new Intent(c,MonitorService.class)); }
     static int wakeHour(Context c) { return c.getSharedPreferences(PREFS,0).getInt(WAKE_HOUR,8); }
     static int wakeMinute(Context c) { return c.getSharedPreferences(PREFS,0).getInt(WAKE_MINUTE,15); }
     static int earliestHour(Context c) { return c.getSharedPreferences(PREFS,0).getInt(EARLIEST_HOUR,7); }
@@ -46,6 +53,7 @@ final class Scheduler {
     static void cancelAll(Context c) {
         manager(c).cancel(monitorIntent(c));manager(c).cancel(alarmIntent(c));
         c.getSharedPreferences(PREFS,0).edit().remove(NEXT).apply();
+        stopMonitorService(c);
     }
     static String formattedNext(Context c) {
         long v=c.getSharedPreferences(PREFS,0).getLong(NEXT,0);
