@@ -5,3 +5,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "QueenslandSnake"
 include(":app")
+include(":smart-alarm")
