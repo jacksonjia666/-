@@ -36,10 +36,10 @@ final class SnakeView extends View {
     private final Handler clock = new Handler(Looper.getMainLooper());
     private final Random random = new Random();
     private final ArrayList<Point> snake = new ArrayList<>();
-    private final Runnable tick = () -> { if (screen == 1) step(); };
     private int screen = 0, selected = 0, dx = 1, dy = 0, nextDx = 1, nextDy = 0;
     private int foodX, foodY, score, best;
     private float downX, downY, cell, left, top;
+    private final Runnable tick = () -> { if (screen == 1) step(); };
 
     SnakeView(Context context) { super(context); p.setTypeface(android.graphics.Typeface.create("sans", 0)); }
 
